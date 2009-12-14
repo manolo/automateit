@@ -13,6 +13,10 @@
 #
 #   package_manager[:gem].setup(:gem => "gem1.8")
 #   package_manager.install 'rails', :with => :gem
+
+require 'rubygems/gem_runner'
+require 'rubygems/exceptions'
+
 class AutomateIt::PackageManager::Gem < AutomateIt::PackageManager::BaseDriver
   attr_accessor :gem
 
@@ -68,6 +72,7 @@ class AutomateIt::PackageManager::Gem < AutomateIt::PackageManager::BaseDriver
   # * :source -- URL source to retrieve Gems from.
   #
   # See PackageManager#install
+
   def install(*packages)
     return _install_helper(*packages) do |list, opts|
       gem = opts[:gem] || self.gem
@@ -88,64 +93,23 @@ class AutomateIt::PackageManager::Gem < AutomateIt::PackageManager::BaseDriver
       # gem options:
       # -y : Include dependencies,
       # -E : use /usr/bin/env for installed executables; but only with >= 0.9.4
-      cmd = "#{gem} install -y"
-      cmd << " --no-ri" if opts[:ri] == false or opts[:docs] == false
-      cmd << " --no-rdoc" if opts[:rdoc] == false or opts[:docs] == false
-      cmd << " --source #{opts[:source]}" if opts[:source]
-      cmd << " "+list.join(" ")
-      cmd << " " << opts[:args] if opts[:args]
-      cmd << " 2>&1"
-
-      # XXX Try to warn the user that they won't see any output for a while
-      log.info(PNOTE+"Installing Gems, this will take a while...") if writing? and not opts[:quiet]
-      log.info(PEXEC+cmd)
-      return true if preview?
-
-      uninstall_needed = false
+      cmd = ["install"]
+      cmd << "--no-ri" if opts[:ri] == false or opts[:docs] == false
+      cmd << "--no-rdoc" if opts[:rdoc] == false or opts[:docs] == false
+      cmd << "--source #{opts[:source]}" if opts[:source]
+      cmd += list
+      cmd += opts[:args] if (opts[:args])
       begin
-        require 'expect'
-        require 'open4'
-        exitstruct = Open4::popen4(cmd) do |pid, sin, sout, serr|
-          $expect_verbose = opts[:quiet] ? false : true
-
-          re_missing=/Could not find.+in any repository/m
-          re_select=/Select which gem to install.+>/m
-          re_failed=/Gem files will remain.+for inspection/m
-          re_refused=/Errno::ECONNREFUSED reading .+?\.gem/m
-          re_all=/#{re_missing}|#{re_select}|#{re_failed}|#{re_refused}/m
-
-          while true
-            begin
-              captureded = sout.expect(re_all)
-            rescue NoMethodError
-              log.debug(PNOTE+"Gem seems to be done")
-              break
-            end
-            ### puts "Captureded %s" % captureded.inspect
-            captured = captureded.first
-            if captured.match(re_failed)
-              log.warn(PERROR+"Gem install failed mid-process")
-              uninstall_needed = true
-              break
-            elsif captured.match(re_refused)
-              log.warn(PERROR+"Gem install refused by server!\n#{captured}")
-              break
-            elsif captured.match(re_select)
-              choice = captured.match(/^ (\d+)\. .+?\(ruby\)\s*$/)[1]
-              log.info(PNOTE+"Guessing: #{choice}")
-              sin.puts(choice)
-            end
-          end
+        Gem::GemRunner.new.run cmd
+      rescue Gem::SystemExitException => e
+        if (e.exit_code == 0 ) 
+           log.info(PNOTE+"Gem install sucessful")
+        else
+           log.error(PERROR+"Gem install failed: #{e}")
+           log.error(PERROR+"Gem install failed, trying to uninstall broken pieces: #{list.inspect}")
+           uninstall(list, opts)
+           raise ArgumentError.new("Gem install failed: #{e}")
         end
-      rescue Errno::ENOENT => e
-        raise NotImplementedError.new("can't find gem command: #{e}")
-      end
-
-      if uninstall_needed or not exitstruct.exitstatus.zero?
-        log.error(PERROR+"Gem install failed, trying to uninstall broken pieces: #{list.inspect}")
-        uninstall(list, opts)
-
-        raise ArgumentError.new("Gem install failed because it's invalid, missing a dependency, or can't talk with Gem server: #{list.inspect}")
       end
     end
   end
