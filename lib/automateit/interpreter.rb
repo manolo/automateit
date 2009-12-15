@@ -28,6 +28,7 @@ module AutomateIt
   # * cp_r -- AutomateIt::ShellManager#cp_r
   # * edit -- AutomateIt::EditManager#edit
   # * download -- AutomateIt::DownloadManager#download
+  # * download_if_modified -- AutomateIt::DownloadManager#download_if_modified
   # * hosts_tagged_with -- AutomateIt::TagManager#hosts_tagged_with
   # * install -- AutomateIt::ShellManager#install
   # * ln -- AutomateIt::ShellManager#ln
@@ -47,6 +48,7 @@ module AutomateIt
   # * rm_rf -- AutomateIt::ShellManager#rm_rf
   # * rmdir -- AutomateIt::ShellManager#rmdir
   # * sh -- AutomateIt::ShellManager#sh
+  # * sys -- AutomateIt::ShellManager#sys
   # * tagged? -- AutomateIt::TagManager#tagged?
   # * tags -- AutomateIt::TagManager#tags
   # * tags_for -- AutomateIt::TagManager#tags_for
@@ -54,7 +56,8 @@ module AutomateIt
   # * umask -- AutomateIt::ShellManager#umask
   # * which -- AutomateIt::ShellManager#which
   # * which! -- AutomateIt::ShellManager#which!
-  #
+  # * scp_r -- AutomateIt::TransferManager#scp_r
+  # * rsync -- AutomateIt::TransferManager#rsync
   # === Embedding the Interpreter
   #
   # The AutomateIt Interpreter can be embedded inside a Ruby program:

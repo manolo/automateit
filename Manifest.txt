@@ -99,6 +99,9 @@ lib/automateit/tag_manager/yaml.rb
 lib/automateit/template_manager.rb
 lib/automateit/template_manager/base.rb
 lib/automateit/template_manager/erb.rb
+lib/automateit/transfer_manager.rb
+lib/automateit/transfer_manager/rsync.rb
+lib/automateit/transfer_manager/scp.rb
 lib/ext/metaclass.rb
 lib/ext/object.rb
 lib/ext/shell_escape.rb

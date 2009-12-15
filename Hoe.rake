@@ -27,7 +27,7 @@ Hoe.new("AutomateIt", AutomateIt::VERSION.to_s) do |s|
   s.changes = s.paragraphs_of('CHANGES.txt', 0).join("\n")
   s.description = slogan
   s.email = "igal@pragmaticraft.com"
-  s.extra_deps = [["open4", ">= 0.9"]]
+  s.extra_deps = [["open4", ">= 0.9"], ["net-scp"]]
   s.name = "automateit"
   s.summary = slogan
   s.url = "http://automateit.org/"
