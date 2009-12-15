@@ -7,7 +7,7 @@
 # previews.txt[link:files/docs/previews_txt.html] for instructions on how to
 # write code that can be safely previewed.
 class AutomateIt::ShellManager < AutomateIt::Plugin::Manager
-  alias_methods :backup, :sh, :which, :which!, :mktemp, :mktempdir, :mktempdircd, :chperm, :umask
+  alias_methods :backup, :sh, :sys, :which, :which!, :mktemp, :mktempdir, :mktempdircd, :chperm, :umask
   alias_methods :cd, :pwd, :mkdir, :mkdir_p, :rmdir, :ln, :ln_s, :ln_sf, :cp, :cp_r, :cp_R, :mv, :rm, :rm_r, :rm_rf, :install, :chmod, :chmod_R, :chown, :chown_R, :touch
 
   #...[ Detection commands ]..............................................
@@ -51,7 +51,13 @@ class AutomateIt::ShellManager < AutomateIt::Plugin::Manager
   def backup(*sources) dispatch(*sources) end
 
   # Execute a shell command.
+  # Returns true for success and false for failure.
   def sh(*commands) dispatch(*commands) end
+    
+  # Execute a shell command.
+  # It raises an exception with the execution output of the command in the case of failure.
+  # It returns the command output in the case of success.
+  def sys(*commands) dispatch(*commands) end
 
   # What is the path for this command? Returns +nil+ if command isn't found.
   #

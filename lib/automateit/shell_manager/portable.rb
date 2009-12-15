@@ -74,6 +74,17 @@ class AutomateIt::ShellManager::Portable < AutomateIt::ShellManager::BaseDriver
     log.info(PEXEC+"#{args.join(' ')}")
     return writing? ? system(*args) : true
   end
+  
+  # See ShellManager#sys
+  def sys(*commands)
+    args, opts = args_and_opts(*commands)
+    cmd = args.join(' ');
+    log.info(PEXEC + cmd)
+    return "" if preview?
+    out=`#{cmd} 2>&1`
+    raise ArgumentError.new("Error executing: '#{cmd}'\n\n--------------\n#{out}\n--------------") if ($? != 0)
+    return out
+  end    
 
   def _mktemp_helper(kind, name=nil, opts={}, &block)
     # Tempster takes care of rethrowing exceptions

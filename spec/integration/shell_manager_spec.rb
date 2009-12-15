@@ -27,6 +27,12 @@ describe AutomateIt::ShellManager, " with sh and which" do
         @m.sh("true").should be_true
         @m.sh("false").should be_false
       end
+      
+      it "should run shell commands raise an error in case of failure" do
+        lambda{ @m.sys("false") }.should raise_error(ArgumentError)
+        lambda{ @m.sys("true") }.should  !raise_error(ArgumentError)
+      end
+      
     end
   rescue NotImplementedError
     puts "NOTE: Can't check 'sh' on this platform, #{__FILE__}"
