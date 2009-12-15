@@ -5,7 +5,7 @@
 
 module AutomateIt
   class DownloadManager < Plugin::Manager
-    alias_methods :download, :download_if_mofified
+    alias_methods :download, :download_if_modified
 
     # Downloads the +source+ document.
     #
@@ -15,12 +15,12 @@ module AutomateIt
       
     # Downloads the +source+ document but only in the case of its size has changed.
     # It uses the HEAD http command to get the remote size.
-    # It puts the downloaded file in the system temporary dir when the target is not provided
+    # It puts the downloaded file in the system's temporary dir when the target is not provided
     # 
     # Examples:
     #   download_if_modified("http://domain.com/file.html", "/var/tmp/my_file.html")
     #   download_if_modified("http://domain.com/file.html") 
-    def download_if_mofified(*arguments) dispatch(*arguments) end
+    def download_if_modified(*arguments) dispatch(*arguments) end
 
     # == DownloadManager::BaseDriver
     #
@@ -33,7 +33,7 @@ module AutomateIt
     #
     # A DownloadManager driver using the OpenURI module for handling HTTP and FTP transfers.
     class OpenURI < BaseDriver
-      depends_on :libraries => %w(open-uri)
+      depends_on :libraries => %w(open-uri net/http)
 
       def suitability(method, *args) # :nodoc:
         return available? ? 1 : 0
@@ -59,15 +59,17 @@ module AutomateIt
       # The transfer is done using a temporary file in order to preserve the original 
       # transfer time and size in the case of an incomplete transfer.
       #
-      def download_if_mofified(url, target=nil)
+      def download_if_modified(url, target=nil)
         target ||= Dir.tmpdir + "/" + File.basename(url.gsub("?.*$", ""))
-        puts PNOTE + "Download if modified: #{target} From: #{url}"
+        log.info PNOTE + "Download if modified: #{target} From: #{url}"
         if remote_has_different_size(url, target)
           tmp_file =  Dir.tmpdir + "/" + "ai_dnld_#{$$}.tmp"
           download url, tmp_file
           return if preview?
           interpreter.mv tmp_file, target
+          return true
         end
+        return false
       end
       
       def remote_has_different_size(url, target)
@@ -77,10 +79,10 @@ module AutomateIt
            res=req.request_head URI.parse(url).path
            remote_size=res.content_length
            if (!remote_size || remote_size == 0)
-             puts PNOTE + "Remote server has not sent the file size in the head request."
+             log.info PNOTE + "Remote server has not sent the file size in the head request."
            else   
              if (local_size == remote_size)
-                puts PNOTE + "Remote file size is identical to local size"
+                log.info PNOTE + "Remote file size is identical to local size"
                 return false
              end
            end

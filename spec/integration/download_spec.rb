@@ -41,4 +41,30 @@ describe "AutomateIt::DownloadManager" do
       File.read(target).should =~ /<html>.*Google/im
     end
   end
+
+  it "should download only once a file if remote supports head command" do
+    @a.mktempdircd do
+      source = "http://apache.org/images/feather.gif"
+      target = "whatever.bin"
+
+      @a.download_if_modified(source, target).should be_true
+      File.exists?(target).should be_true
+      
+      @a.download_if_modified(source, target).should be_false
+      
+   end
+  end
+
+  it "should download twice a file if remote doesn't send size in head command" do
+    @a.mktempdircd do
+      source = "http://www.google.com/"
+      target = "whatever.bin"
+
+      @a.download_if_modified(source, target).should be_true
+      File.exists?(target).should be_true
+      
+      @a.download_if_modified(source, target).should be_true
+      
+   end
+  end
 end
