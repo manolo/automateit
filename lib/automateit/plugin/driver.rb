@@ -202,6 +202,8 @@ module AutomateIt
                     raise TypeError.new("Unknown kind: #{kind}")
                   end
                 unless present
+                  log.debug(PNOTE+"!! Error !!: unable to load Driver #{self.class} because #{kind} '#{item}' is not available")
+
                   all_present = false
                   missing[kind] ||= []
                   missing[kind] << item
